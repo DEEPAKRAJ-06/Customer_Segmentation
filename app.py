@@ -37,7 +37,7 @@ def load_and_preprocess_data():
 
     df['Income'] = (df['Income'] - df['Income'].mean()) / df['Income'].std()
     df['Total_Youth'] = df['Kidhome'] + df['Teenhome']
-    df['Dt_Customer'] = pd.to_datetime(df['Dt_Customer'])
+    df['Dt_Customer'] = pd.to_datetime(df['Dt_Customer'],dayfirst=True)
     today = pd.to_datetime('today')
     df['Tenure_Months'] = (today.year - df['Dt_Customer'].dt.year) * 12 + (today.month - df['Dt_Customer'].dt.month)
     df.drop(columns=['Dt_Customer'], inplace=True)
