@@ -1,11 +1,9 @@
-
 import pandas as pd
 import streamlit as st
 from datetime import datetime
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 import seaborn as sns
-
 
 def load_and_preprocess_data():
     df = pd.read_csv("Customer_Segmentation_Dataset.csv", low_memory=False, on_bad_lines='skip', skip_blank_lines=True)
@@ -35,9 +33,12 @@ def load_and_preprocess_data():
     }
     df['Marital_Status'] = df['Marital_Status'].map(mapping)
 
+    # Copy before scaling
+    df_raw = df.copy()
+
     df['Income'] = (df['Income'] - df['Income'].mean()) / df['Income'].std()
     df['Total_Youth'] = df['Kidhome'] + df['Teenhome']
-    df['Dt_Customer'] = pd.to_datetime(df['Dt_Customer'],dayfirst=True)
+    df['Dt_Customer'] = pd.to_datetime(df['Dt_Customer'], dayfirst=True)
     today = pd.to_datetime('today')
     df['Tenure_Months'] = (today.year - df['Dt_Customer'].dt.year) * 12 + (today.month - df['Dt_Customer'].dt.month)
     df.drop(columns=['Dt_Customer'], inplace=True)
@@ -82,27 +83,35 @@ def load_and_preprocess_data():
         df[new_col] = df[new_col].map(ordinal_map)
 
     df.drop(columns=["Z_Revenue", "Z_CostContact"], inplace=True, errors='ignore')
-    return df
+    df_raw.drop(columns=["Z_Revenue", "Z_CostContact"], inplace=True, errors='ignore')
+    return df, df_raw
 
 
 st.title("Customer Segmentation Clustering")
-df = load_and_preprocess_data()
+df, df_raw = load_and_preprocess_data()
 
 k = st.slider("Select number of clusters (k)", min_value=2, max_value=10, value=4)
 
 features = df.select_dtypes(include=['float64', 'int64'])
 kmeans = KMeans(n_clusters=k, random_state=42)
 df['Cluster'] = kmeans.fit_predict(features)
+df_raw['Cluster'] = df['Cluster']
 
-st.write("### Cluster Profiling")
-cluster_profile = df.groupby('Cluster').mean(numeric_only=True)
-st.dataframe(cluster_profile)
+# Cluster Profiling by Mode
+def cluster_mode(df):
+    return df.mode().iloc[0]
 
-# Visualize with pairplot or barplot
+cluster_profile_mode = df_raw.groupby('Cluster').apply(cluster_mode).reset_index(drop=True)
+
+st.write("### Cluster Profiling (Mode of Non-Standardized Values)")
+st.dataframe(cluster_profile_mode)
+
+# Cluster Visualization
 st.write("### Cluster Visualization (Age vs Income)")
 plt.figure(figsize=(10, 6))
 sns.scatterplot(data=df, x='Age', y='Income', hue='Cluster', palette='viridis')
 st.pyplot(plt)
 
+# Cluster Counts
 st.write("### Number of Customers per Cluster")
 st.bar_chart(df['Cluster'].value_counts().sort_index())
