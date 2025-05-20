@@ -107,7 +107,7 @@ st.dataframe(cluster_profile_mode)
 
 st.write("### Age vs Income")
 plt.figure(figsize=(10, 6))
-sns.scatterplot(data=df, x='Age', y='Income', hue='Cluster', palette='viridis')
+sns.scatterplot(data=df_raw, x='Age', y='Income', hue='Cluster', palette='viridis')
 st.pyplot(plt)
 
 
