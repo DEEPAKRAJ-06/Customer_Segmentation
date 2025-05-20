@@ -33,7 +33,7 @@ def load_and_preprocess_data():
     }
     df['Marital_Status'] = df['Marital_Status'].map(mapping)
 
-    # Copy before scaling
+   
     df_raw = df.copy()
 
     df['Income'] = (df['Income'] - df['Income'].mean()) / df['Income'].std()
@@ -97,21 +97,19 @@ kmeans = KMeans(n_clusters=k, random_state=42)
 df['Cluster'] = kmeans.fit_predict(features)
 df_raw['Cluster'] = df['Cluster']
 
-# Cluster Profiling by Mode
 def cluster_mode(df):
     return df.mode().iloc[0]
 
 cluster_profile_mode = df_raw.groupby('Cluster').apply(cluster_mode).reset_index(drop=True)
 
-st.write("### Cluster Profiling (Mode of Non-Standardized Values)")
+st.write("### Mode of Clusters")
 st.dataframe(cluster_profile_mode)
 
-# Cluster Visualization
-st.write("### Cluster Visualization (Age vs Income)")
+st.write("### Age vs Income")
 plt.figure(figsize=(10, 6))
 sns.scatterplot(data=df, x='Age', y='Income', hue='Cluster', palette='viridis')
 st.pyplot(plt)
 
-# Cluster Counts
+
 st.write("### Number of Customers per Cluster")
 st.bar_chart(df['Cluster'].value_counts().sort_index())
