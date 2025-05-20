@@ -1,4 +1,4 @@
-import pandas as pd
+ import pandas as pd
 import streamlit as st
 from datetime import datetime
 from sklearn.preprocessing import StandardScaler
@@ -78,20 +78,9 @@ X_scaled = scaler.fit_transform(X)
 pca = PCA(n_components=24)
 X_pca = pca.fit_transform(X_scaled)
 
-st.write("Explained variance ratio by component:")
-st.write(pca.explained_variance_ratio_)
 
 k = st.slider("Select number of clusters (k)", 2, 10, 4)
 
-inertia = []
-for i in range(1, 11):
-    inertia.append(KMeans(n_clusters=i, random_state=42).fit(X_pca).inertia_)
-plt.figure()
-plt.plot(range(1, 11), inertia, "bo-")
-plt.xlabel("Number of clusters")
-plt.ylabel("Inertia")
-st.pyplot(plt.gcf())
-plt.clf()
 
 kmeans = KMeans(n_clusters=k, random_state=42).fit(X_pca)
 labels = kmeans.labels_
@@ -104,14 +93,15 @@ cluster_modes = (
     .agg(lambda x: x.mode().iloc[0])
     .reset_index()
 )
+
 st.write("Cluster mode profiles:")
 st.dataframe(cluster_modes)
 
-st.write("PCA scatter plot of first two components:")
-plt.figure()
-sns.scatterplot(x=X_pca[:, 0], y=X_pca[:, 1], hue=labels, palette="viridis")
-st.pyplot(plt.gcf())
-plt.clf()
+st.write("### Age vs Income")
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=df_raw, x='Age', y='Income', hue='Cluster', palette='viridis')
+st.pyplot(plt)
 
-st.write("Number of customers per cluster:")
-st.bar_chart(df["Cluster"].value_counts().sort_index())
+
+st.write("### Number of Customers per Cluster")
+st.bar_chart(df['Cluster'].value_counts().sort_index())
